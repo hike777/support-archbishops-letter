@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Support Armenian Archbishops</title>
+  <title>Support Archbishop Bagrat Galstanyan and Archbishop Mikael Adjapahyan</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -23,7 +23,7 @@
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    input, button {
+    input, button, select {
       width: 100%;
       padding: 10px;
       margin: 10px 0;
@@ -50,8 +50,17 @@
 </head>
 <body>
 
-  <h1>Support Armenian Archbishops</h1>
-  <p>Please fill in your details to generate a letter you can send to your representatives in support of Archbishop Bagrat Galstanyan  and Archbishop Mikael Adjapahyan.</p>
+  <h1>Support Archbishop Bagrat Galstanyan and Archbishop Mikael Adjapahyan</h1>
+  <p style="text-align:center; font-weight: bold; margin-top: -10px;">
+    Demand their immediate release from unlawful detention by the Armenian government.
+  </p>
+
+  <label for="language">Choose language:</label>
+  <select id="language">
+    <option value="en" selected>English</option>
+    <option value="hy">Armenian</option>
+    <option value="ru">Russian</option>
+  </select>
 
   <form id="letterForm">
     <input type="text" id="fullName" placeholder="Full Name" required />
@@ -68,12 +77,14 @@
     <h2>Your Letter:</h2>
     <div id="letterPreview"></div>
     <button onclick="copyLetter()">📋 Copy Letter</button>
+    <button id="sendEmailButton">📧 Send via Email</button>
   </div>
 
   <script>
     const form = document.getElementById('letterForm');
     const letterContainer = document.getElementById('letterContainer');
     const letterPreview = document.getElementById('letterPreview');
+    const sendEmailButton = document.getElementById('sendEmailButton');
 
     form.addEventListener('submit', function(event) {
       event.preventDefault();
@@ -86,8 +97,7 @@
       const state = document.getElementById('state').value;
       const zip = document.getElementById('zip').value;
 
-      const letter = `
-Subject: Demand for Immediate Release of Archbishops Bagrat and Mikael
+      const letter = `Subject: Demand for Immediate Release of Archbishops Bagrat and Mikael
 
 Dear Senator/Congressman,
 
@@ -102,11 +112,13 @@ ${fullName}
 ${address}
 ${city}, ${state} ${zip}
 ${phone ? phone : ''}
-${email}
-      `.trim();
+${email}`.trim();
 
       letterPreview.textContent = letter;
       letterContainer.classList.remove('hidden');
+
+      const mailtoLink = `mailto:?subject=Support for Detained Armenian Archbishops&body=${encodeURIComponent(letter)}`;
+      sendEmailButton.setAttribute('onclick', `window.location.href='${mailtoLink}'`);
     });
 
     function copyLetter() {
