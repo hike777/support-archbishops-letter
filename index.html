@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Support Archbishops Bagrat & Mikael</title>
+  <title>Support Archbishops Bagrat Galstanyan & Mikael Adjapahyan</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -53,12 +53,21 @@
       max-height: 200px;
       overflow-y: auto;
       font-size: 0.9em;
+      margin-bottom: 15px;
+    }
+    a {
+      color: #8B0000;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
 
-  <h1 id="title">Support Archbishop Bagrat Galstanyan & Archbishop Mikael Adjapahyan</h1>
+  <h1 id="title">Support Archbishops Bagrat Galstanyan & Mikael Adjapahyan</h1>
   <p id="description" style="text-align:center; font-weight: bold;">
     Demand their immediate release from unlawful detention in Armenia.
   </p>
@@ -78,7 +87,7 @@
       <option value="ru">Русский</option>
     </select>
 
-    <button type="button" id="lookupReps">Lookup Representatives</button>
+    <button type="button" id="lookupReps">Find Your Representative</button>
     <div id="repsList" class="hidden"></div>
 
     <button type="submit" id="generateLetter">Generate Letter</button>
@@ -94,7 +103,7 @@
   <script>
     const translations = {
       en: {
-        title: 'Support Archbishop Bagrat Galstanyan & Archbishop Mikael Adjapahyan',
+        title: 'Support Archbishops Bagrat Galstanyan & Mikael Adjapahyan',
         description: 'Demand their immediate release from unlawful detention in Armenia.',
         fullName: 'Full Name',
         email: 'Email Address',
@@ -103,14 +112,17 @@
         city: 'City',
         state: 'State',
         zip: 'ZIP Code',
-        lookupReps: 'Lookup Representatives',
+        lookupReps: 'Find Your Representative',
         generateLetter: 'Generate Letter',
         yourLetter: 'Your Letter:',
         copy: '📋 Copy Letter',
-        send: '📧 Send via Email'
+        send: '📧 Send via Email',
+        repsUnavailable: 'Representative lookup is currently unavailable. Please visit ',
+        repsLinkText: 'Find Your Representative',
+        repsLinkURL: 'https://www.commoncause.org/find-your-representative/'
       },
       hy: {
-        title: 'Աջակցեք Արքեպիսկոպոս Բագրատ Գալստանյանին և Արքեպիսկոպոս Միքայել Աջապահյանին',
+        title: 'Աջակցեք Արքեպիսկոպոս Բագրատ Գալստանյանին և Միքայել Աջապահյանին',
         description: 'Պահանջեք նրանց անհապաղ ազատ արձակումը Հայաստանում ապօրինի կալանքից:',
         fullName: 'Անուն Ազգանուն',
         email: 'Էլ․ հասցե',
@@ -119,14 +131,17 @@
         city: 'Քաղաք',
         state: 'Մարզ / Նահանգ',
         zip: 'ZIP կոդ',
-        lookupReps: 'Գտնել ներկայացուցիչներին',
+        lookupReps: 'Գտնել Ձեր ներկայացուցիչին',
         generateLetter: 'Ստեղծել նամակը',
         yourLetter: 'Ձեր նամակը՝',
         copy: '📋 Պատճենել նամակը',
-        send: '📧 Ուղարկել էլ.փոստով'
+        send: '📧 Ուղարկել էլ.փոստով',
+        repsUnavailable: 'Ներկայացված ներկայացուցիչների որոնումը ներկայումս մատչելի չէ։ Խնդրում ենք այցելել ',
+        repsLinkText: 'Ձեր ներկայացուցիչին գտնելու համար',
+        repsLinkURL: 'https://www.commoncause.org/find-your-representative/'
       },
       ru: {
-        title: 'Поддержите Архиепископa Баграта Галстаняна и Архиепископa Микаэла Адчапаяна',
+        title: 'Поддержите Архиепископов Баграта Галстаняна и Микаэла Аджапахяна',
         description: 'Требуйте их немедленного освобождения от незаконного задержания в Армении.',
         fullName: 'ФИО',
         email: 'Электронная почта',
@@ -135,16 +150,19 @@
         city: 'Город',
         state: 'Штат / Область',
         zip: 'Почтовый индекс',
-        lookupReps: 'Найти представителей',
+        lookupReps: 'Найти своего представителя',
         generateLetter: 'Сформировать письмо',
         yourLetter: 'Ваше письмо:',
         copy: '📋 Копировать письмо',
-        send: '📧 Отправить по email'
+        send: '📧 Отправить по email',
+        repsUnavailable: 'Поиск представителей в данный момент недоступен. Пожалуйста, посетите ',
+        repsLinkText: 'Найдите своего представителя',
+        repsLinkURL: 'https://www.commoncause.org/find-your-representative/'
       }
     };
 
-    document.getElementById('language').addEventListener('change', (e) => {
-      const lang = e.target.value;
+    // UI Translation
+    function updateUI(lang) {
       const t = translations[lang];
       document.getElementById('title').textContent = t.title;
       document.getElementById('description').textContent = t.description;
@@ -160,6 +178,107 @@
       document.getElementById('yourLetter').textContent = t.yourLetter;
       document.getElementById('copyButton').textContent = t.copy;
       document.getElementById('sendEmailButton').textContent = t.send;
+    }
+
+    document.getElementById('language').addEventListener('change', (e) => {
+      updateUI(e.target.value);
+      document.getElementById('repsList').classList.add('hidden'); // hide reps message on language change
+    });
+
+    // Initialize default language UI
+    updateUI('en');
+
+    // Replace reps lookup with link message
+    document.getElementById('lookupReps').addEventListener('click', () => {
+      const lang = document.getElementById('language').value;
+      const t = translations[lang];
+      const repsList = document.getElementById('repsList');
+      repsList.innerHTML = `
+        <p>
+          ${t.repsUnavailable}
+          <a href="${t.repsLinkURL}" target="_blank" rel="noopener noreferrer">${t.repsLinkText}</a>.
+        </p>`;
+      repsList.classList.remove('hidden');
+    });
+
+    // Letter generation with translations
+    document.getElementById('letterForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const fullName = document.getElementById('fullName').value;
+      const email = document.getElementById('email').value;
+      const phone = document.getElementById('phone').value;
+      const address = document.getElementById('address').value;
+      const city = document.getElementById('city').value;
+      const state = document.getElementById('state').value;
+      const zip = document.getElementById('zip').value;
+      const lang = document.getElementById('language').value;
+
+      let letter = '';
+
+      if (lang === 'hy') {
+        letter = `
+Վերնագիր․ Պահանջում եմ բաց թողնել արքեպիսկոպոս Բագրատ Գալստանյանին և Միքայել Աջապահյանին
+
+Հարգելի Սենատոր/Կոնգրեսական,
+
+Ես՝ ${fullName}-ը, ապրում եմ ${city}, ${state}-ում։ Հայտնում եմ իմ մտահոգությունը Հայաստանում արքեպիսկոպոս Բագրատ Գալստանյանի և Միքայել Աջապահյանի ապօրինի կալանավորման կապակցությամբ։
+
+Նրանք հոգևոր առաջնորդներ են, ովքեր կանգնած են ժողովրդի կողքին։ Կոչ եմ անում Ձեզ՝ դատապարտել այս գործողությունները և պահանջել նրանց անհապաղ ազատ արձակումը։
+
+Հարգանքով՝
+${fullName}
+${address}
+${city}, ${state} ${zip}
+${email} ${phone}
+        `.trim();
+      } else if (lang === 'ru') {
+        letter = `
+Тема: Требуем немедленного освобождения архиепископов Баграта Галстаняна и Микаэла Аджапахяна
+
+Уважаемый Сенатор / Конгрессмен,
+
+Меня зовут ${fullName}, я живу в ${city}, ${state}. Я выражаю глубокую обеспокоенность по поводу незаконного задержания архиепископов Баграта Галстаняна и Микаэла Аджапахяна в Армении.
+
+Они — духовные лидеры, выступающие за справедливость. Призываю Вас публично осудить эти действия и потребовать их немедленного освобождения.
+
+С уважением,
+${fullName}
+${address}
+${city}, ${state} ${zip}
+${email} ${phone}
+        `.trim();
+      } else {
+        letter = `
+Subject: Demand for Immediate Release of Archbishops Bagrat Galstanyan and Mikael Adjapahyan
+
+Dear Senator/Congressman,
+
+My name is ${fullName}, a resident of ${city}, ${state}, and I urge you to speak out against the unlawful detention of Archbishops Bagrat Galstanyan and Mikael Adjapahyan in Armenia.
+
+As someone who values democracy and religious freedom, I ask you to publicly demand their release and advocate for the rule of law in Armenia.
+
+Sincerely,
+${fullName}
+${address}
+${city}, ${state} ${zip}
+${email} ${phone}
+        `.trim();
+      }
+
+      document.getElementById('letterPreview').textContent = letter;
+      document.getElementById('letterContainer').classList.remove('hidden');
+      document.getElementById('sendEmailButton').onclick = () => {
+        window.location.href = `mailto:?subject=Support for Detained Armenian Archbishops&body=${encodeURIComponent(letter)}`;
+      };
+    });
+
+    // Copy letter to clipboard
+    document.getElementById('copyButton').addEventListener('click', () => {
+      const text = document.getElementById('letterPreview').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Letter copied to clipboard!');
+      });
     });
   </script>
 
