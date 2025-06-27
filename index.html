@@ -97,7 +97,7 @@
       const state = document.getElementById('state').value;
       const zip = document.getElementById('zip').value;
 
-      const letter = `Subject: Demand for Immediate Release of Archbishops Bagrat and Mikael
+      const letter = `Subject: Demand for Immediate Release of Archbishops Bagrat Galstanyan and Mikael Adjapahyan
 
 Dear Senator/Congressman,
 
@@ -111,6 +111,48 @@ Sincerely,
 ${fullName}
 ${address}
 ${city}, ${state} ${zip}
+<button type="button" id="lookupReps">Lookup Representatives</button>
+
+<div id="repsList" style="margin-top: 10px; font-size: 0.9em;"></div>
+
+<script>
+  const apiKey = 'YOUR_GOOGLE_CIVICS_API_KEY'; // Replace this!
+
+  document.getElementById('lookupReps').addEventListener('click', () => {
+    const zip = document.getElementById('zip').value.trim();
+    if (!zip.match(/^\d{5}$/)) {
+      alert('Please enter a valid 5-digit ZIP code');
+      return;
+    }
+    fetch(`https://www.googleapis.com/civicinfo/v2/representatives?key=${apiKey}&address=${zip}`)
+      .then(res => res.json())
+      .then(data => {
+        // Parse the data for Senators and Congress members
+        const offices = data.offices || [];
+        const officials = data.officials || [];
+        const repNames = [];
+
+        offices.forEach(office => {
+          if (office.name.includes('United States Senate') || office.name.includes('United States House of Representatives')) {
+            office.officialIndices.forEach(idx => {
+              const official = officials[idx];
+              repNames.push(`${office.name}: ${official.name}`);
+            });
+          }
+        });
+
+        if (repNames.length === 0) {
+          document.getElementById('repsList').textContent = 'No representatives found for this ZIP.';
+        } else {
+          document.getElementById('repsList').innerHTML = '<b>Your Representatives:</b><br>' + repNames.join('<br>');
+        }
+      })
+      .catch(err => {
+        alert('Error fetching representatives: ' + err.message);
+      });
+  });
+</script>
+
 ${phone ? phone : ''}
 ${email}`.trim();
 
