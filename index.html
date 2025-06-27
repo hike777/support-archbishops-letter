@@ -86,7 +86,7 @@
   </div>
 
   <script>
-    const apiKey = AIzaSyAqtipxKMT5VyD8-o-GJWkeqg761iVvm90
+    const apiKey = 'YOUR_GOOGLE_CIVICS_API_KEY'; // <-- Replace with your API key
 
     const form = document.getElementById('letterForm');
     const letterContainer = document.getElementById('letterContainer');
@@ -130,7 +130,20 @@
           if (repNames.length === 0) {
             repsList.textContent = 'No representatives found for this ZIP.';
           } else {
-            repsList.innerHTML = '<b>Your Representatives:</b><br>' + repNames.join('<br>');
+            repsList.innerHTML = '<b>Your Representatives:</b><br>';
+            repNames.forEach((rep, i) => {
+              const email = representatives[i].email;
+              if (email) {
+                repsList.innerHTML += `
+                  <div style="margin-bottom:8px;">
+                    ${rep} 
+                    <button style="margin-left:10px;" onclick="window.open('mailto:${email}')">Send Email</button>
+                  </div>
+                `;
+              } else {
+                repsList.innerHTML += `<div>${rep} (No email available)</div>`;
+              }
+            });
           }
         })
         .catch(err => {
