@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Support Archbishop Bagrat Galstanyan and Archbishop Mikael Adjapahyan</title>
   <style>
     body {
@@ -46,6 +46,16 @@
     .hidden {
       display: none;
     }
+    #repsList {
+      margin-top: 10px;
+      font-size: 0.9em;
+      background: #fff;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      max-height: 150px;
+      overflow-y: auto;
+    }
   </style>
 </head>
 <body>
@@ -55,13 +65,6 @@
     Demand their immediate release from unlawful detention by the Armenian government.
   </p>
 
-  <label for="language">Choose language:</label>
-  <select id="language">
-    <option value="en" selected>English</option>
-    <option value="hy">Armenian</option>
-    <option value="ru">Russian</option>
-  </select>
-
   <form id="letterForm">
     <input type="text" id="fullName" placeholder="Full Name" required />
     <input type="text" id="email" placeholder="Email Address" required />
@@ -70,6 +73,8 @@
     <input type="text" id="city" placeholder="City" required />
     <input type="text" id="state" placeholder="State" required />
     <input type="text" id="zip" placeholder="ZIP Code" required />
+    <button type="button" id="lookupReps">Lookup Representatives</button>
+    <div id="repsList" class="hidden"></div>
     <button type="submit">Generate Letter</button>
   </form>
 
@@ -81,10 +86,57 @@
   </div>
 
   <script>
+    const apiKey = 'YOUR_GOOGLE_CIVICS_API_KEY'; // <-- Replace with your API key
+
     const form = document.getElementById('letterForm');
     const letterContainer = document.getElementById('letterContainer');
     const letterPreview = document.getElementById('letterPreview');
     const sendEmailButton = document.getElementById('sendEmailButton');
+    const lookupButton = document.getElementById('lookupReps');
+    const repsList = document.getElementById('repsList');
+
+    let representatives = [];
+
+    lookupButton.addEventListener('click', () => {
+      const zip = document.getElementById('zip').value.trim();
+      if (!zip.match(/^\d{5}$/)) {
+        alert('Please enter a valid 5-digit ZIP code');
+        return;
+      }
+      repsList.textContent = 'Looking up representatives...';
+      repsList.classList.remove('hidden');
+
+      fetch(`https://www.googleapis.com/civicinfo/v2/representatives?key=${apiKey}&address=${zip}`)
+        .then(res => res.json())
+        .then(data => {
+          representatives = [];
+          const offices = data.offices || [];
+          const officials = data.officials || [];
+          const repNames = [];
+
+          offices.forEach(office => {
+            if (
+              office.name.includes('United States Senate') ||
+              office.name.includes('United States House of Representatives')
+            ) {
+              office.officialIndices.forEach(idx => {
+                const official = officials[idx];
+                repNames.push(`${office.name}: ${official.name}`);
+                representatives.push({ office: office.name, name: official.name, email: official.emails ? official.emails[0] : '' });
+              });
+            }
+          });
+
+          if (repNames.length === 0) {
+            repsList.textContent = 'No representatives found for this ZIP.';
+          } else {
+            repsList.innerHTML = '<b>Your Representatives:</b><br>' + repNames.join('<br>');
+          }
+        })
+        .catch(err => {
+          repsList.textContent = 'Error fetching representatives: ' + err.message;
+        });
+    });
 
     form.addEventListener('submit', function(event) {
       event.preventDefault();
@@ -97,7 +149,18 @@
       const state = document.getElementById('state').value;
       const zip = document.getElementById('zip').value;
 
-      const letter = `Subject: Demand for Immediate Release of Archbishops Bagrat Galstanyan and Mikael Adjapahyan
+      // Build representatives string
+      let repsText = '';
+      if (representatives.length > 0) {
+        repsText = 'Your Representatives:\n';
+        representatives.forEach(rep => {
+          repsText += `${rep.office}: ${rep.name}\n`;
+        });
+        repsText += '\n';
+      }
+
+      const letter = `
+Subject: Demand for Immediate Release of Archbishops Bagrat and Mikael
 
 Dear Senator/Congressman,
 
@@ -105,56 +168,15 @@ My name is ${fullName}, a resident of ${city}, ${state}, and I write to urge you
 
 As a citizen who believes in religious freedom, justice, and democratic values, I am deeply concerned by the actions of the Armenian government in silencing spiritual leaders who have stood with the people.
 
-I urge you to raise your voice and call for their immediate release, and to use your office to advocate for the rule of law and freedom of expression in Armenia.
+${repsText}I urge you to raise your voice and call for their immediate release, and to use your office to advocate for the rule of law and freedom of expression in Armenia.
 
 Sincerely,
 ${fullName}
 ${address}
 ${city}, ${state} ${zip}
-<button type="button" id="lookupReps">Lookup Representatives</button>
-
-<div id="repsList" style="margin-top: 10px; font-size: 0.9em;"></div>
-
-<script>
-  const apiKey = 'YOUR_GOOGLE_CIVICS_API_KEY'; // Replace this!
-
-  document.getElementById('lookupReps').addEventListener('click', () => {
-    const zip = document.getElementById('zip').value.trim();
-    if (!zip.match(/^\d{5}$/)) {
-      alert('Please enter a valid 5-digit ZIP code');
-      return;
-    }
-    fetch(`https://www.googleapis.com/civicinfo/v2/representatives?key=${apiKey}&address=${zip}`)
-      .then(res => res.json())
-      .then(data => {
-        // Parse the data for Senators and Congress members
-        const offices = data.offices || [];
-        const officials = data.officials || [];
-        const repNames = [];
-
-        offices.forEach(office => {
-          if (office.name.includes('United States Senate') || office.name.includes('United States House of Representatives')) {
-            office.officialIndices.forEach(idx => {
-              const official = officials[idx];
-              repNames.push(`${office.name}: ${official.name}`);
-            });
-          }
-        });
-
-        if (repNames.length === 0) {
-          document.getElementById('repsList').textContent = 'No representatives found for this ZIP.';
-        } else {
-          document.getElementById('repsList').innerHTML = '<b>Your Representatives:</b><br>' + repNames.join('<br>');
-        }
-      })
-      .catch(err => {
-        alert('Error fetching representatives: ' + err.message);
-      });
-  });
-</script>
-
 ${phone ? phone : ''}
-${email}`.trim();
+${email}
+      `.trim();
 
       letterPreview.textContent = letter;
       letterContainer.classList.remove('hidden');
