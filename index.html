@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Support Archbishop Bagrat Galstanyan and Archbishop Mikael Adjapahyan</title>
+  <title>Support Archbishops Bagrat & Mikael</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -17,7 +17,6 @@
       text-align: center;
     }
     form {
-      margin-bottom: 20px;
       background: #fff;
       padding: 20px;
       border-radius: 8px;
@@ -47,22 +46,21 @@
       display: none;
     }
     #repsList {
-      margin-top: 10px;
-      font-size: 0.9em;
       background: #fff;
       padding: 10px;
       border-radius: 6px;
       border: 1px solid #ccc;
-      max-height: 150px;
+      max-height: 200px;
       overflow-y: auto;
+      font-size: 0.9em;
     }
   </style>
 </head>
 <body>
 
-  <h1>Support Archbishop Bagrat Galstanyan and Archbishop Mikael Adjapahyan</h1>
-  <p style="text-align:center; font-weight: bold; margin-top: -10px;">
-    Demand their immediate release from unlawful detention by the Armenian government.
+  <h1>Support Archbishops Bagrat Galstanyan & Mikael Adjapahyan</h1>
+  <p style="text-align:center; font-weight: bold;">
+    Demand their immediate release from unlawful detention in Armenia.
   </p>
 
   <form id="letterForm">
@@ -73,8 +71,16 @@
     <input type="text" id="city" placeholder="City" required />
     <input type="text" id="state" placeholder="State" required />
     <input type="text" id="zip" placeholder="ZIP Code" required />
+
+    <select id="language">
+      <option value="en">English</option>
+      <option value="hy">Armenian</option>
+      <option value="ru">Russian</option>
+    </select>
+
     <button type="button" id="lookupReps">Lookup Representatives</button>
     <div id="repsList" class="hidden"></div>
+
     <button type="submit">Generate Letter</button>
   </form>
 
@@ -86,15 +92,8 @@
   </div>
 
   <script>
-    const apiKey = 'YOUR_GOOGLE_CIVICS_API_KEY'; // <-- Replace with your API key
-
-    const form = document.getElementById('letterForm');
-    const letterContainer = document.getElementById('letterContainer');
-    const letterPreview = document.getElementById('letterPreview');
-    const sendEmailButton = document.getElementById('sendEmailButton');
     const lookupButton = document.getElementById('lookupReps');
     const repsList = document.getElementById('repsList');
-
     let representatives = [];
 
     lookupButton.addEventListener('click', () => {
@@ -103,56 +102,37 @@
         alert('Please enter a valid 5-digit ZIP code');
         return;
       }
-      repsList.textContent = 'Looking up representatives...';
+
+      repsList.innerHTML = 'Looking up representatives...';
       repsList.classList.remove('hidden');
 
-      fetch(`https://www.googleapis.com/civicinfo/v2/representatives?key=${apiKey}&address=${zip}`)
-        .then(res => res.json())
-        .then(data => {
-          representatives = [];
-          const offices = data.offices || [];
-          const officials = data.officials || [];
-          const repNames = [];
-
-          offices.forEach(office => {
-            if (
-              office.name.includes('United States Senate') ||
-              office.name.includes('United States House of Representatives')
-            ) {
-              office.officialIndices.forEach(idx => {
-                const official = officials[idx];
-                repNames.push(`${office.name}: ${official.name}`);
-                representatives.push({ office: office.name, name: official.name, email: official.emails ? official.emails[0] : '' });
-              });
-            }
-          });
-
-          if (repNames.length === 0) {
-            repsList.textContent = 'No representatives found for this ZIP.';
-          } else {
-            repsList.innerHTML = '<b>Your Representatives:</b><br>';
-            repNames.forEach((rep, i) => {
-              const email = representatives[i].email;
-              if (email) {
-                repsList.innerHTML += `
-                  <div style="margin-bottom:8px;">
-                    ${rep} 
-                    <button style="margin-left:10px;" onclick="window.open('mailto:${email}')">Send Email</button>
-                  </div>
-                `;
-              } else {
-                repsList.innerHTML += `<div>${rep} (No email available)</div>`;
-              }
-            });
-          }
-        })
-        .catch(err => {
-          repsList.textContent = 'Error fetching representatives: ' + err.message;
-        });
+      // Use JSONP workaround due to CORS limits
+      const script = document.createElement('script');
+      script.src = `https://whoismyrepresentative.com/getall_mems.php?zip=${zip}&output=json&callback=displayReps`;
+      document.body.appendChild(script);
     });
 
-    form.addEventListener('submit', function(event) {
-      event.preventDefault();
+    function displayReps(data) {
+      representatives = data.results || [];
+      if (representatives.length === 0) {
+        repsList.textContent = 'No representatives found for this ZIP.';
+        return;
+      }
+
+      repsList.innerHTML = '<b>Your Federal Representatives:</b><br>';
+      representatives.forEach(rep => {
+        const name = rep.name;
+        const email = `${name.toLowerCase().replace(/ /g, '.')}@house.gov`;
+        repsList.innerHTML += `
+          <div style="margin-bottom:8px;">
+            ${rep.office}: ${rep.name}
+            <button onclick="window.open('mailto:${email}')">Send Email</button>
+          </div>`;
+      });
+    }
+
+    document.getElementById('letterForm').addEventListener('submit', function(e) {
+      e.preventDefault();
 
       const fullName = document.getElementById('fullName').value;
       const email = document.getElementById('email').value;
@@ -161,45 +141,69 @@
       const city = document.getElementById('city').value;
       const state = document.getElementById('state').value;
       const zip = document.getElementById('zip').value;
+      const lang = document.getElementById('language').value;
 
-      // Build representatives string
-      let repsText = '';
-      if (representatives.length > 0) {
-        repsText = 'Your Representatives:\n';
-        representatives.forEach(rep => {
-          repsText += `${rep.office}: ${rep.name}\n`;
-        });
-        repsText += '\n';
-      }
+      let letter = '';
 
-      const letter = `
+      if (lang === 'hy') {
+        letter = `
+Վերնագիր․ Պահանջում եմ բաց թողնել արքեպիսկոպոս Բագրատին և Միքայելին
+
+Հարգելի Սենատոր/Կոնգրեսական,
+
+Ես՝ ${fullName}-ը, ապրում եմ ${city}, ${state}-ում։ Հայտնում եմ իմ մտահոգությունը Հայաստանում արքեպիսկոպոս Բագրատ Գալստանյանի և Միքայել Աջապահյանի ապօրինի կալանավորման կապակցությամբ։
+
+Նրանք հոգևոր առաջնորդներ են, ովքեր կանգնած են ժողովրդի կողքին։ Կոչ եմ անում Ձեզ՝ դատապարտել այս գործողությունները և պահանջել նրանց անհապաղ ազատ արձակումը։
+
+Հարգանքով՝
+${fullName}
+${address}
+${city}, ${state} ${zip}
+${email} ${phone}
+        `.trim();
+      } else if (lang === 'ru') {
+        letter = `
+Тема: Требуем немедленного освобождения архиепископов Баграта и Микаэла
+
+Уважаемый Сенатор / Конгрессмен,
+
+Меня зовут ${fullName}, я живу в ${city}, ${state}. Я выражаю глубокую обеспокоенность по поводу незаконного задержания архиепископов Баграта Галстаняна и Микаэла Аджапахяна в Армении.
+
+Они — духовные лидеры, выступающие за справедливость. Призываю Вас публично осудить эти действия и потребовать их немедленного освобождения.
+
+С уважением,
+${fullName}
+${address}
+${city}, ${state} ${zip}
+${email} ${phone}
+        `.trim();
+      } else {
+        letter = `
 Subject: Demand for Immediate Release of Archbishops Bagrat and Mikael
 
 Dear Senator/Congressman,
 
-My name is ${fullName}, a resident of ${city}, ${state}, and I write to urge you to speak out against the unlawful detention of Archbishops Bagrat Galstanyan and Mikael Adjapahyan in Armenia.
+My name is ${fullName}, a resident of ${city}, ${state}, and I urge you to speak out against the unlawful detention of Archbishops Bagrat Galstanyan and Mikael Adjapahyan in Armenia.
 
-As a citizen who believes in religious freedom, justice, and democratic values, I am deeply concerned by the actions of the Armenian government in silencing spiritual leaders who have stood with the people.
-
-${repsText}I urge you to raise your voice and call for their immediate release, and to use your office to advocate for the rule of law and freedom of expression in Armenia.
+As someone who values democracy and religious freedom, I ask you to publicly demand their release and advocate for the rule of law in Armenia.
 
 Sincerely,
 ${fullName}
 ${address}
 ${city}, ${state} ${zip}
-${phone ? phone : ''}
-${email}
-      `.trim();
+${email} ${phone}
+        `.trim();
+      }
 
-      letterPreview.textContent = letter;
-      letterContainer.classList.remove('hidden');
-
-      const mailtoLink = `mailto:?subject=Support for Detained Armenian Archbishops&body=${encodeURIComponent(letter)}`;
-      sendEmailButton.setAttribute('onclick', `window.location.href='${mailtoLink}'`);
+      document.getElementById('letterPreview').textContent = letter;
+      document.getElementById('letterContainer').classList.remove('hidden');
+      document.getElementById('sendEmailButton').onclick = () => {
+        window.location.href = `mailto:?subject=Support for Detained Armenian Archbishops&body=${encodeURIComponent(letter)}`;
+      };
     });
 
     function copyLetter() {
-      const text = letterPreview.textContent;
+      const text = document.getElementById('letterPreview').textContent;
       navigator.clipboard.writeText(text).then(() => {
         alert('Letter copied to clipboard!');
       });
