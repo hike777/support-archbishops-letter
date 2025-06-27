@@ -58,8 +58,8 @@
 </head>
 <body>
 
-  <h1>Support Archbishops Bagrat Galstanyan & Mikael Adjapahyan</h1>
-  <p style="text-align:center; font-weight: bold;">
+  <h1 id="title">Support Archbishop Bagrat Galstanyan & Archbishop Mikael Adjapahyan</h1>
+  <p id="description" style="text-align:center; font-weight: bold;">
     Demand their immediate release from unlawful detention in Armenia.
   </p>
 
@@ -74,140 +74,93 @@
 
     <select id="language">
       <option value="en">English</option>
-      <option value="hy">Armenian</option>
-      <option value="ru">Russian</option>
+      <option value="hy">Հայերեն</option>
+      <option value="ru">Русский</option>
     </select>
 
     <button type="button" id="lookupReps">Lookup Representatives</button>
     <div id="repsList" class="hidden"></div>
 
-    <button type="submit">Generate Letter</button>
+    <button type="submit" id="generateLetter">Generate Letter</button>
   </form>
 
   <div id="letterContainer" class="hidden">
-    <h2>Your Letter:</h2>
+    <h2 id="yourLetter">Your Letter:</h2>
     <div id="letterPreview"></div>
-    <button onclick="copyLetter()">📋 Copy Letter</button>
+    <button id="copyButton">📋 Copy Letter</button>
     <button id="sendEmailButton">📧 Send via Email</button>
   </div>
 
   <script>
-    const lookupButton = document.getElementById('lookupReps');
-    const repsList = document.getElementById('repsList');
-    let representatives = [];
-
-    lookupButton.addEventListener('click', () => {
-      const zip = document.getElementById('zip').value.trim();
-      if (!zip.match(/^\d{5}$/)) {
-        alert('Please enter a valid 5-digit ZIP code');
-        return;
+    const translations = {
+      en: {
+        title: 'Support Archbishop Bagrat Galstanyan & Archbishop Mikael Adjapahyan',
+        description: 'Demand their immediate release from unlawful detention in Armenia.',
+        fullName: 'Full Name',
+        email: 'Email Address',
+        phone: 'Phone Number (optional)',
+        address: 'Street Address',
+        city: 'City',
+        state: 'State',
+        zip: 'ZIP Code',
+        lookupReps: 'Lookup Representatives',
+        generateLetter: 'Generate Letter',
+        yourLetter: 'Your Letter:',
+        copy: '📋 Copy Letter',
+        send: '📧 Send via Email'
+      },
+      hy: {
+        title: 'Աջակցեք Արքեպիսկոպոս Բագրատ Գալստանյանին և Արքեպիսկոպոս Միքայել Աջապահյանին',
+        description: 'Պահանջեք նրանց անհապաղ ազատ արձակումը Հայաստանում ապօրինի կալանքից:',
+        fullName: 'Անուն Ազգանուն',
+        email: 'Էլ․ հասցե',
+        phone: 'Հեռախոսահամար (ըստ ցանկության)',
+        address: 'Հասցե',
+        city: 'Քաղաք',
+        state: 'Մարզ / Նահանգ',
+        zip: 'ZIP կոդ',
+        lookupReps: 'Գտնել ներկայացուցիչներին',
+        generateLetter: 'Ստեղծել նամակը',
+        yourLetter: 'Ձեր նամակը՝',
+        copy: '📋 Պատճենել նամակը',
+        send: '📧 Ուղարկել էլ.փոստով'
+      },
+      ru: {
+        title: 'Поддержите Архиепископa Баграта Галстаняна и Архиепископa Микаэла Адчапаяна',
+        description: 'Требуйте их немедленного освобождения от незаконного задержания в Армении.',
+        fullName: 'ФИО',
+        email: 'Электронная почта',
+        phone: 'Телефон (необязательно)',
+        address: 'Адрес',
+        city: 'Город',
+        state: 'Штат / Область',
+        zip: 'Почтовый индекс',
+        lookupReps: 'Найти представителей',
+        generateLetter: 'Сформировать письмо',
+        yourLetter: 'Ваше письмо:',
+        copy: '📋 Копировать письмо',
+        send: '📧 Отправить по email'
       }
+    };
 
-      repsList.innerHTML = 'Looking up representatives...';
-      repsList.classList.remove('hidden');
-
-      // Use JSONP workaround due to CORS limits
-      const script = document.createElement('script');
-      script.src = `https://whoismyrepresentative.com/getall_mems.php?zip=${zip}&output=json&callback=displayReps`;
-      document.body.appendChild(script);
+    document.getElementById('language').addEventListener('change', (e) => {
+      const lang = e.target.value;
+      const t = translations[lang];
+      document.getElementById('title').textContent = t.title;
+      document.getElementById('description').textContent = t.description;
+      document.getElementById('fullName').placeholder = t.fullName;
+      document.getElementById('email').placeholder = t.email;
+      document.getElementById('phone').placeholder = t.phone;
+      document.getElementById('address').placeholder = t.address;
+      document.getElementById('city').placeholder = t.city;
+      document.getElementById('state').placeholder = t.state;
+      document.getElementById('zip').placeholder = t.zip;
+      document.getElementById('lookupReps').textContent = t.lookupReps;
+      document.getElementById('generateLetter').textContent = t.generateLetter;
+      document.getElementById('yourLetter').textContent = t.yourLetter;
+      document.getElementById('copyButton').textContent = t.copy;
+      document.getElementById('sendEmailButton').textContent = t.send;
     });
-
-    function displayReps(data) {
-      representatives = data.results || [];
-      if (representatives.length === 0) {
-        repsList.textContent = 'No representatives found for this ZIP.';
-        return;
-      }
-
-      repsList.innerHTML = '<b>Your Federal Representatives:</b><br>';
-      representatives.forEach(rep => {
-        const name = rep.name;
-        const email = `${name.toLowerCase().replace(/ /g, '.')}@house.gov`;
-        repsList.innerHTML += `
-          <div style="margin-bottom:8px;">
-            ${rep.office}: ${rep.name}
-            <button onclick="window.open('mailto:${email}')">Send Email</button>
-          </div>`;
-      });
-    }
-
-    document.getElementById('letterForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-
-      const fullName = document.getElementById('fullName').value;
-      const email = document.getElementById('email').value;
-      const phone = document.getElementById('phone').value;
-      const address = document.getElementById('address').value;
-      const city = document.getElementById('city').value;
-      const state = document.getElementById('state').value;
-      const zip = document.getElementById('zip').value;
-      const lang = document.getElementById('language').value;
-
-      let letter = '';
-
-      if (lang === 'hy') {
-        letter = `
-Վերնագիր․ Պահանջում եմ բաց թողնել արքեպիսկոպոս Բագրատին և Միքայելին
-
-Հարգելի Սենատոր/Կոնգրեսական,
-
-Ես՝ ${fullName}-ը, ապրում եմ ${city}, ${state}-ում։ Հայտնում եմ իմ մտահոգությունը Հայաստանում արքեպիսկոպոս Բագրատ Գալստանյանի և Միքայել Աջապահյանի ապօրինի կալանավորման կապակցությամբ։
-
-Նրանք հոգևոր առաջնորդներ են, ովքեր կանգնած են ժողովրդի կողքին։ Կոչ եմ անում Ձեզ՝ դատապարտել այս գործողությունները և պահանջել նրանց անհապաղ ազատ արձակումը։
-
-Հարգանքով՝
-${fullName}
-${address}
-${city}, ${state} ${zip}
-${email} ${phone}
-        `.trim();
-      } else if (lang === 'ru') {
-        letter = `
-Тема: Требуем немедленного освобождения архиепископов Баграта и Микаэла
-
-Уважаемый Сенатор / Конгрессмен,
-
-Меня зовут ${fullName}, я живу в ${city}, ${state}. Я выражаю глубокую обеспокоенность по поводу незаконного задержания архиепископов Баграта Галстаняна и Микаэла Аджапахяна в Армении.
-
-Они — духовные лидеры, выступающие за справедливость. Призываю Вас публично осудить эти действия и потребовать их немедленного освобождения.
-
-С уважением,
-${fullName}
-${address}
-${city}, ${state} ${zip}
-${email} ${phone}
-        `.trim();
-      } else {
-        letter = `
-Subject: Demand for Immediate Release of Archbishops Bagrat and Mikael
-
-Dear Senator/Congressman,
-
-My name is ${fullName}, a resident of ${city}, ${state}, and I urge you to speak out against the unlawful detention of Archbishops Bagrat Galstanyan and Mikael Adjapahyan in Armenia.
-
-As someone who values democracy and religious freedom, I ask you to publicly demand their release and advocate for the rule of law in Armenia.
-
-Sincerely,
-${fullName}
-${address}
-${city}, ${state} ${zip}
-${email} ${phone}
-        `.trim();
-      }
-
-      document.getElementById('letterPreview').textContent = letter;
-      document.getElementById('letterContainer').classList.remove('hidden');
-      document.getElementById('sendEmailButton').onclick = () => {
-        window.location.href = `mailto:?subject=Support for Detained Armenian Archbishops&body=${encodeURIComponent(letter)}`;
-      };
-    });
-
-    function copyLetter() {
-      const text = document.getElementById('letterPreview').textContent;
-      navigator.clipboard.writeText(text).then(() => {
-        alert('Letter copied to clipboard!');
-      });
-    }
   </script>
 
 </body>
