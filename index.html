@@ -134,6 +134,20 @@
       display: block;
       opacity: 1;
     }
+    #instructions {
+      background:#fff;
+      border-radius:10px;
+      padding:20px;
+      margin-bottom:30px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      color: #333;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+    #instructions h2 {
+      color:#a41e1e;
+      margin-top: 0;
+    }
     @media (max-width: 600px) {
       body {
         padding: 15px;
@@ -161,6 +175,23 @@
   <p id="description">
     Demand their immediate release from unlawful detention in Armenia.
   </p>
+
+  <section id="instructions">
+    <h2>How to Use This Tool</h2>
+    <ol>
+      <li><strong>Fill out your personal information</strong> in the form fields above, including your full name, email, and address.</li>
+      <li><strong>Click the “Find Your Representative” button</strong> to open a trusted site where you can search by your ZIP code to find your U.S. senators and congressmen/women.</li>
+      <li><strong>Note the names of your representatives</strong> from that site.</li>
+      <li><strong>Copy their official email addresses</strong> from their government or official congressional websites to send your letter via email.</li>
+      <li><strong>Find their mailing addresses</strong> on the same official sites if you want to print your letter and mail a physical copy with your signature.</li>
+      <li><strong>Click “Generate Letter”</strong> here to create a personalized letter supporting Archbishops Bagrat Galstanyan and Mikael Adjapahyan.</li>
+      <li><strong>Copy the generated letter</strong> or <strong>send it directly via your email client</strong> using the buttons below the letter preview.</li>
+    </ol>
+    <p style="font-style: italic; color: #555;">
+      For your convenience, use this link to find your representatives: 
+      <a href="https://www.commoncause.org/find-your-representative/" target="_blank" rel="noopener noreferrer" style="color:#a41e1e; font-weight:600;">Find Your Representative</a>.
+    </p>
+  </section>
 
   <form id="letterForm">
     <input type="text" id="fullName" placeholder="Full Name" required />
@@ -383,13 +414,10 @@ ${email} ${phone}
       const text = document.getElementById('letterPreview').textContent;
       navigator.clipboard.writeText(text).then(() => {
         const feedback = document.getElementById('copyFeedback');
-        feedback.style.display = 'block';
-        setTimeout(() => {
-          feedback.style.display = 'none';
-        }, 2000);
+        feedback.style.display = 'inline';
+        setTimeout(() => (feedback.style.display = 'none'), 2500);
       });
     });
   </script>
-
 </body>
 </html>
